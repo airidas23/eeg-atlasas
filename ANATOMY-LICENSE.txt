@@ -1,0 +1,21 @@
+BigBrain pial surfaces
+
+BigBrain Project, BigBrain Release 2015, Amunts et al. (2013), “BigBrain:
+An Ultrahigh-Resolution 3D Human Brain Model”, Science 340, 1472–1475.
+https://doi.org/10.1126/science.1235381
+https://ftp.bigbrainproject.org/bigbrain-ftp/Credits.txt
+
+Source files (separate left and right pial surfaces, ICBM152 2009b symmetric):
+https://ftp.bigbrainproject.org/bigbrain-ftp/BigBrainRelease.2015/3D_Surfaces/Apr7_2016/gii/gray_left_rsl_327680_2009b_sym.surf.gii
+https://ftp.bigbrainproject.org/bigbrain-ftp/BigBrainRelease.2015/3D_Surfaces/Apr7_2016/gii/gray_right_rsl_327680_2009b_sym.surf.gii
+
+Changes in anatomy-data.js: triangle decimation to 18,500 per hemisphere,
+coordinate quantization to 0.01 mm and binary-to-JavaScript encoding.
+The display translates and uniformly scales these surfaces for the HydroCel
+montage. This display alignment is illustrative. The BigBrain anatomy is
+independent of the MODMA participants and EEG recording geometry.
+
+The adapted geometry in anatomy-data.js is licensed under
+CC BY-NC-SA 4.0 International.
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+https://ftp.bigbrainproject.org/bigbrain-ftp/License.txt
