@@ -15,7 +15,7 @@
 <body>
   <a class="skip" href="#atlas">Pereiti prie atlaso</a>
   <header class="top">
-    <a class="brand" href="#top">EEG atlasas</a>
+    <a class="brand" href="#top">EEG</a>
     <nav aria-label="Puslapio skyriai">
       <a href="#atlas">Junglumas</a>
       <a href="#modeliai">Modeliai</a>
@@ -27,16 +27,15 @@
   <main id="top">
     <section class="intro" aria-labelledby="title">
       <div>
-        <h1 id="title">EEG junglumas<br>ir modelių rezultatai</h1>
-        <p class="lede">KTU III semestro MODMA MDD/HC tyrimas, v0.3.0. Sukite galvos vaizdą, palyginkite grupes ir patikrinkite kiekvieno modelio metrikas.</p>
+        <h1 id="title">EEG ir modelių rezultatai</h1>
+        <p class="lede">KTU III semestro MODMA MDD/HC tyrimas.</p>
       </div>
       <div id="headline-stats" class="stats" aria-label="Tyrimas skaičiais"></div>
     </section>
     <p id="error" role="alert" hidden></p>
     <noscript>Interaktyviai peržiūrai reikia JavaScript. Agregatus galima parsisiųsti <a href="results.json">JSON formatu</a>.</noscript>
     <section id="atlas" aria-labelledby="atlas-title">
-      <div class="section-head"><h2 id="atlas-title">Junglumas galvos paviršiuje</h2>
-        <p>Sukite BigBrain žievės modelį ir palyginkite HydroCel jutiklių ryšius.</p></div>
+      <div class="section-head"><h2 id="atlas-title">Junglumas</h2></div>
       <div class="controls panel">
         <label>Sluoksnis<select id="layer"><option value="connectivity">Junglumo matricos · 128 kanalai</option><option value="ig">Integrated Gradients · 11 regionų</option><option value="occlusion">Okliuzija · 11 regionų</option></select></label>
         <label>Grupė 3D vaizde<select id="group"><option>HC</option><option selected>MDD</option><option value="delta">MDD − HC</option></select></label>
@@ -84,7 +83,7 @@
       </div>
     </section>
     <section id="modeliai" aria-labelledby="model-title">
-      <div class="section-head"><h2 id="model-title">Modelių palyginimas</h2><p>Metrikos apskaičiuotos dalyvių lygmeniu. Spalva žymi metriką, o AUC atkarpa rodo išsaugotą 95 % intervalą, kai jis pateiktas.</p></div>
+      <div class="section-head"><h2 id="model-title">Modelių palyginimas</h2><p>Metrikos apskaičiuotos dalyvių lygmeniu. Spalva žymi metriką, o AUC atkarpa rodo išsaugotą 95 % intervalą.</p></div>
       <div class="panel">
         <div class="controls">
           <label>Etapas<select id="stage"></select></label>
