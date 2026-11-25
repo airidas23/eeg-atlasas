@@ -234,7 +234,7 @@ function explorer(data) {
     $("scale-max").textContent=fmt(scale,5);
     $("map-note").textContent=regional
       ?"Diagnostiniai "+model+" logito indėliai arba pokyčiai. Stabilumas 0/51. Spalvų skalė bendra, regionų taškai yra jutiklių grupių centrai."
-      :"Vidurkis iš 10 testavimo vaizdų vienam dalyviui. MDD − HC skirtumas aprašomasis. Abiejų matricų skalė bendra.";
+      :"Kiekvieno dalyvio 10 testavimo vaizdų suvidurkinti. Visi grupės dalyviai turi vienodą svorį. MDD − HC skirtumas aprašomasis. Abiejų matricų skalė bendra.";
     drawEdges();drawSelection();
   }
 
@@ -367,7 +367,7 @@ function sourceTable(aggregates) {
     }
     const filter=$("source-filter").value.trim().toLowerCase();
     const rows=tableRows[source].filter(([name])=>name.toLowerCase().includes(filter));
-    $("source-status").textContent=fmt(rows.length)+" laukų";
+    $("source-status").textContent="Laukų skaičius – "+fmt(rows.length);
     table("source-table",["Laukas","Reikšmė"],rows);
   }
   $("source-details").addEventListener("toggle",render);
@@ -392,7 +392,7 @@ function init(data) {
     formatCI([s.occlusion_median_rho_range.min,s.occlusion_median_rho_range.max])]);
   table("xai-gates",["Modelis","IG pilnumas","IG stabilumas","Okliuzijos stabilumas","IG ρ min–max","Okliuzijos ρ min–max"],cells);
   $("unavailable").textContent=Object.entries(data.unavailable).map(([name,r])=>
-    name+" ("+r.a+" / "+r.b+") liko neapskaičiuotas, nes nebuvo įtrauktos abi iš anksto numatytos šakos.").join(" ");
+    "Palyginimas "+name+" ("+r.a+" ir "+r.b+") neatliktas, nes į tyrimą neįtraukti abu numatyti modeliai.").join(" ");
 }
 
 try {

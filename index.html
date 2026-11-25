@@ -105,25 +105,16 @@
       </div>
     </section>
     <section id="viskas" class="panel delivery" aria-labelledby="delivery-title">
-      <div><h2 id="delivery-title">Visi išsaugoti rezultatai</h2>
-      <p>ROC ir kalibracija, tankio jautrumas, poriniai kontrastai, permutacijos su Holm pataisa, XAI kontrolės, vykdymo sąnaudos, papildomos analizės ir tyrimo ribos.</p></div>
-      <div class="actions"><a class="button" href="#registras">Pereiti prie registro</a><a class="button subdued" href="results.json" download>Parsisiųsti agregatus (JSON)</a></div>
+      <div><h2 id="delivery-title">Išsaugoti rezultatai</h2>
+      <p>Registre pateikti modelių palyginimai, prognozuotų tikimybių ir paaiškinimų patikros, skaičiavimo trukmės ir tyrimo ribos.</p></div>
+      <div class="actions"><a class="button" href="#registras">Atverti registrą</a><a class="button subdued" href="results.json" download>Atsisiųsti suvestines (JSON)</a></div>
       <p id="unavailable" class="note"></p>
-      <details id="source-details"><summary>Visi skaitiniai laukai pagal šaltinį</summary>
-        <p class="note">Pasirinkite suvestinę. Čia matomi ir grafikuose nevaizduojami rodikliai. Matricos pateiktos junglumo skyriuje.</p>
+      <details id="source-details"><summary>Suvestinių laukai</summary>
+        <p class="note">Čia rasite ir rodiklius, kurių nėra diagramose.</p>
         <div class="controls source-controls"><label>Suvestinė<select id="source-select"></select></label>
-          <label>Filtruoti pagal lauko pavadinimą<input id="source-filter" type="search" placeholder="Pvz., sensitivity"></label></div>
+          <label>Ieškoti pagal lauko pavadinimą<input id="source-filter" type="search"></label></div>
         <output id="source-status" aria-live="polite"></output>
-        <div id="source-table" class="table-wrap source-table" tabindex="0" aria-label="Skaitiniai laukai pagal šaltinį"></div>
-      </details>
-      <details><summary>Literatūros vizualų pritaikymas ir duomenų kilmė</summary>
-        <ul>
-          <li>Du ir kt., PDF p. 6–7, 3–4 pav. įkvėpė suporuotas HC/MDD matricas ir tankio palyginimus. Šiame puslapyje naudojami v0.3.0 WPLI ir oAEC. <a href="https://doi.org/10.1140/epjs/s11734-025-01776-9">Straipsnis</a></li>
-          <li>Huang ir kt., PDF p. 5, 1 pav. įkvėpė spalvotą svertinį jutiklių tinklą. Čia taikomos HydroCel koordinatės ir v0.3.0 svoriai. <a href="https://doi.org/10.1186/s12888-023-04958-8">Straipsnis</a></li>
-          <li>Farhadi Sedehi ir Bagherzadeh, PDF p. 6, 3 pav. įkvėpė juostų ir įverčių perjungimą išlaikant matricų tvarką. <a href="https://doi.org/10.1038/s41598-026-74701-2">Straipsnis</a></li>
-          <li>Šimić ir kt., PDF p. 6, 2 pav. įkvėpė atskirą paaiškinimų patikrų pateikimą. Rodomos atliktos v0.3.0 kontrolės ir post hoc rezultatai. <a href="https://doi.org/10.1038/s41598-025-09538-2">Straipsnis</a></li>
-        </ul>
-        <p>Kohortos junglumo vaizdai suskaičiuoti vidurkinant dešimt užfiksuotų testavimo matricų kiekvienam dalyviui, tada vienodai sveriant dalyvius klasėje. Skirtumas MDD − HC yra aprašomasis. Visi kiti rezultatai paimti iš v0.3.0 suvestinių.</p>
+        <div id="source-table" class="table-wrap source-table" tabindex="0" aria-label="Suvestinių laukų lentelė"></div>
       </details>
     </section>
     <section id="registras" aria-label="Tyrimo rezultatų registras"><template shadowrootmode="open"><style>
