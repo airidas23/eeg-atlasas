@@ -263,7 +263,7 @@ function supplementNumericChart(section){
   select.addEventListener('change',draw);draw();
 }
 function renderRegistryPlots(d){
-  byId('primary-visual').replaceChildren();resultPlot('primary-visual','Pirminis OOF AUC ir 95 % intervalai',d.primary.map(m=>({label:m.model,value:m.mean_auc,low:m.ci95?.[0],high:m.ci95?.[1]})),{reference:.5,axis:'AUC',note:'Atkarpos – išsaugoti 95 % subjektų bootstrap intervalai; 0,5 – atsitiktinio rangavimo atskaita.'});
+  byId('primary-visual').replaceChildren();resultPlot('primary-visual','Modelių AUC ir 95 % pasikliautinieji intervalai',d.primary.map(m=>({label:m.model,value:m.mean_auc,low:m.ci95?.[0],high:m.ci95?.[1]})),{reference:.5,axis:'AUC',note:'Taškai rodo penkių vertinimų AUC vidurkį. Atkarpos žymi 95 % pasikliautinuosius intervalus, gautus kartotinai atrenkant dalyvius. Ties 0,5 pažymėta atsitiktinio rangavimo atskaita.'});
   dataTable('primary-results','Pagrindinis tyrimas · visi modeliai',['Modelis','AUC','95 % intervalas','Subal. tikslumas','Jautrumas','Specifiškumas','Brier'],d.primary.map(m=>[m.model,number(m.mean_auc),intervalText(m.ci95),...metricKeys.slice(1).map(k=>number(m[k]))]));
   stageVisuals(d);
   resultPlot('all-valid-results','Visos tinkamos epochos − fiksuotos grupės',d.all_valid.map(r=>({label:r.model,value:r.delta_auc,low:r.delta_ci95?.[0],high:r.delta_ci95?.[1]})),{domain:[-1,1],reference:0,axis:'Suporuotas ΔAUC ir 95 % intervalas',note:'Tas pats išsaugotas modelis; naujo mokymo nėra. Nulis – skirtumo atskaita.'});
@@ -295,7 +295,7 @@ function renderRegistryPlots(d){
 function renderResults(){
   const d=studyResults;if(!d)return;
   byId('results-content').hidden=false;
-  byId('results-state').textContent=count(d.study.subjects)+' įrašas · '+count(d.study.repeats)+' × '+count(d.study.folds)+' CV · '+d.models.length+' modelių · skaičiavimų patikra '+dateText(d.study.completed_at)+'. '+d.study.xai_warning;
+  byId('results-state').textContent=count(d.study.subjects)+' dalyvis. '+d.models.length+' modelių. '+count(d.study.folds)+' dalių kryžminė patikra kartota '+count(d.study.repeats)+' kartus. Paaiškinimų žemėlapiai buvo nestabilūs ir skirti tik patikrai.';
   options('analysis-model',d.models.map(m=>[m,m]),d.models.includes('M2-TFA')?'M2-TFA':d.models[0]);renderCalibration();
   byId('sensitivity-results').replaceChildren();
   orderedStages(d.stages).forEach(s=>{const detail=document.createElement('details'),summary=document.createElement('summary'),host=document.createElement('div');detail.className='analysis-detail';summary.textContent=(stageNames[s.key]||s.label)+' · '+Object.keys(s.models).length+' modelių';detail.appendChild(summary);detail.appendChild(host);dataTable(host,stageNames[s.key]||s.label,['Modelis','AUC','95 % intervalas','Subal. tikslumas','Jautrumas','Specifiškumas','Brier','Būsena'],Object.entries(s.models).map(([model,m])=>[model,number(m.mean_auc),intervalText(m.ci95),...metricKeys.slice(1).map(k=>number(m[k])),m.status==='NOT_ESTIMABLE'?'Neįvertinama':m.status?'Išsaugota':'—']));resultPlot(host,(stageNames[s.key]||s.label)+' · AUC',Object.entries(s.models).map(([model,m])=>({label:model,value:m.status==='NOT_ESTIMABLE'?null:m.mean_auc,low:m.status==='NOT_ESTIMABLE'?null:m.ci95?.[0],high:m.status==='NOT_ESTIMABLE'?null:m.ci95?.[1],status:m.status})),{reference:.5,axis:'AUC',note:'Tik šio etapo išsaugoti įverčiai ir 95 % intervalai. Neįvertinami atvejai paliekami be taško.'});byId('sensitivity-results').appendChild(detail);});

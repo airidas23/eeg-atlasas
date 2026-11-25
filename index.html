@@ -117,7 +117,7 @@
         <div id="source-table" class="table-wrap source-table" tabindex="0" aria-label="Suvestinių laukų lentelė"></div>
       </details>
     </section>
-    <section id="registras" aria-label="Tyrimo rezultatų registras"><template shadowrootmode="open"><style>
+    <section id="registras" aria-label="Tyrimo rezultatai"><template shadowrootmode="open"><style>
 html{scroll-padding-top:calc(var(--study-nav-height,53px) + 8px)}
 .shell>nav{position:sticky;top:0;z-index:5;background:var(--bg);flex-shrink:0}
 :root{--bg:#e3edf2;--surface:#f9fcfdf5;--glass:#f5fbffbd;--ink:#183344;--muted:#486476;--line:#cadbe5;--teal:#08757b;--amber:#975a1c;--error:#ac342b;--focus:#08656f;--shadow:#264c6814;--rim:#fff;--hover:#deedf3;--control:#506c86}
@@ -207,10 +207,10 @@ button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,
   outline:3px solid var(--focus);outline-offset:2px;
 }
 </style><details class="study-section" id="results-details"><summary>Analizė, pakartojimai ir skaičiavimo laikas</summary><div class="study-content">
-<h2>Tyrimo rezultatų registras</h2><p class="panel-note" id="results-state" role="status">Suvestinės bus įkeltos atvėrus registrą.</p>
+<h2>Tyrimo rezultatai</h2><p class="panel-note" id="results-state" role="status">Suvestinės bus įkeltos atvėrus registrą.</p>
 <div id="results-content" hidden>
-<p class="panel-note">Skaitymo seka: pagrindinis rezultatas → pakartojimai → jautrumas → poriniai palyginimai → kontrolės → XAI → sąnaudos ir kilmė. 51 tiriamasis nėra 51 × 25 nepriklausomų stebėjimų.</p>
-<details class="analysis-detail" open><summary>Pagrindinis tyrimas · 14 modelių ir neapibrėžtumas</summary><p class="panel-note">13 EEG modelių ir demografinė kontrolė C0. Taškas – penkių OOF AUC vidurkis, atkarpa – išsaugotas 95 % subjektų bootstrap intervalas; mokymas nekartotas.</p><div id="primary-visual"></div><div id="primary-results"></div></details>
+<p class="panel-note">Per visus pakartojimus vertinta ta pati dalyvių grupė.</p>
+<details class="analysis-detail" open><summary>Pagrindiniai 14 modelių rezultatai</summary><p class="panel-note">Diagramoje – 13 EEG modelių ir kontrolinis modelis C0, kuris naudoja demografinius duomenis. AUC rodo, kaip gerai modelis atskiria grupes.</p><div id="primary-visual"></div><div id="primary-results"></div></details>
 <details class="analysis-detail" open><summary>Modelio pakartojimai ir kalibracija</summary><div class="analysis-selector"><label>Modelis<select id="analysis-model"></select></label><p class="repeat-strip" id="repeat-auc"></p></div><div class="calibration-layout"><svg id="calibration-chart" viewBox="0 0 430 280" role="img" aria-label="Modelio kalibracija: prognozuota tikimybė ir stebėta dalis"></svg><div id="calibration-table"></div></div><div id="repeat-visual"></div><p class="panel-note">Kalibracija iš vieno subjekto vidutinės OOF tikimybės per pakartojimus; tai nėra atskirų epochų kalibracija.</p></details>
 <details class="analysis-detail" open><summary>Jautrumo analizės · visi 10 išsaugotų etapų</summary><p class="panel-note">Pagrindinis tyrimas, patikimumo atranka, LOSO, kanalų maskavimas, etikečių kontrolė ir penki grafų tankiai. Skirtingų etapų metrikos nėra naujas bendras mokymas. LOSO apima tik tiesinius modelius; tankiai – M0a ir M0a-L11. Tuščia reikšmė nėra nulis.</p><div id="sensitivity-overview"></div><div id="density-visual"></div><div id="sensitivity-results"></div></details>
 <details class="analysis-detail"><summary>Visų tinkamų duomenų variantas</summary><div id="all-valid-results"></div></details>
