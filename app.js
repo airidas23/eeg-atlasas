@@ -330,7 +330,7 @@ function performance(data) {
     const missing=rows.filter(([,r])=>!Number.isFinite(r[metric])).length;
     $("metric-note").textContent=(metric==="brier"?"Mažesnis Brier balas geriau. ":"")+
       (metric.includes("auc")?"Vertikali linija žymi AUC 0,5. ":"")+
-      (missing?missing+" modelių ši metrika nepateikta. ":"")+"Pasirinkus modelį rodoma jo skaitinė lentelė.";
+      (missing?missing+" modelių ši metrika nepateikta. ":"")+"Pasirinkus modelį rodoma jo lentelė.";
     const row=stage.models[selectedModel];
     const repeats=Math.max(0,...METRICS.map(([, , ,key])=>row?.[key]?.length||0));
     table("repeat-table",["Metrika","Suvestinė",...Array.from({length:repeats},(_,i)=>"Kart. "+(i+1))],

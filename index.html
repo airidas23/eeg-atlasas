@@ -27,7 +27,7 @@
   <main id="top">
     <section class="intro" aria-labelledby="title">
       <div>
-        <h1 id="title">EEG ir modelių rezultatai</h1>
+        <h1 id="title">EEG modelių rezultatai</h1>
         <p class="lede">KTU III semestro MODMA MDD/HC tyrimas.</p>
       </div>
       <div id="headline-stats" class="stats" aria-label="Tyrimas skaičiais"></div>
@@ -94,13 +94,13 @@
           <div><h3 id="metric-title"></h3><div id="metric-chart" aria-labelledby="metric-title"></div><p id="metric-note" class="note"></p></div>
           <div><h3>Pasirinkto modelio metrikos</h3><div id="repeat-table" class="table-wrap" tabindex="0" aria-label="Pasirinkto modelio metrikos"></div></div>
         </div>
-        <details><summary>Visų šio etapo modelių skaitinė lentelė</summary><div id="metrics-table" class="table-wrap" tabindex="0" aria-label="Visų etapo modelių metrikos"></div></details>
+        <details><summary>Visų šio etapo modelių lentelė</summary><div id="metrics-table" class="table-wrap" tabindex="0" aria-label="Visų etapo modelių metrikos"></div></details>
       </div>
     </section>
     <section id="diagnostika" aria-labelledby="xai-title">
       <div class="section-head"><h2 id="xai-title">XAI patikimumas</h2><p>Stabilumo kriterijaus nepasiekė nė vienas tiriamasis nė viename iš trijų modelių. Žemėlapiai skirti diagnostinei peržiūrai.</p></div>
       <div class="panel"><div id="xai-gates" class="table-wrap" tabindex="0" aria-label="XAI vartų lentelė"></div>
-        <p class="note">IG pilnumas, paaiškinimų stabilumas ir atsitiktinimo kontrolės vertinami atskirai. Regionų klasės vidurkiai neturi pasikliautinųjų intervalų.</p>
+        <p class="note">Pilnumas tikrina, ar įvesčių indėlių suma atitinka modelio išvesties pokytį nuo atskaitos. Stabilumas rodo, ar kartojant mokymą gaunami panašūs paaiškinimai. Atsitiktinai pakeitus modelio svorius arba permaišius grupių žymes tikrinama, ar paaiškinimai pasikeičia. Grupių regionų vidurkiai pateikti be pasikliautinųjų intervalų.</p>
         <a class="button" href="#post-hoc">Peržiūrėti post hoc diagnostiką</a>
       </div>
     </section>
