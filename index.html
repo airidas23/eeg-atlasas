@@ -317,18 +317,47 @@ input[type=checkbox]{width:20px;height:20px;flex-shrink:0}.comparison-legend lab
 button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible {
   outline:3px solid var(--focus);outline-offset:2px;
 }
-</style><details class="study-section" id="xai-diagnostics"><summary>XAI diagnostika · post hoc palyginimai</summary><div class="study-content">
-<h2>XAI diagnostika</h2>
-<p class="diagnostic-warning">Atskira post hoc analizė iš išsaugotų modelių. Istorinis IG ir okliuzijos stabilumo rezultatas lieka 0 / 51 visiems trims modeliams. Šie palyginimai nėra naujas tyrimo etapas ar nauji interpretavimo vartai.</p>
-<p class="panel-note" id="diagnostics-state" role="status">Diagnostikos suvestinė bus patikrinta atvėrus šį skyrių.</p>
-<div id="diagnostics-content" hidden>
-<p class="panel-note" id="diagnostics-coverage"></p><p class="panel-note" id="diagnostics-protocol"></p>
-<div class="analysis-selector"><label>Modelis<select id="diagnostics-model"></select></label><label>Skalė stabilumui, bazinei įvesčiai ir konvergencijai<select id="diagnostics-score"><option value="logit">Klasės logitas</option><option value="margin">Logitų skirtumas</option><option value="probability">Klasės tikimybė</option></select></label></div>
-<section aria-labelledby="diagnostics-score-title"><h3 id="diagnostics-score-title">Tikslinės skalės palyginimas</h3><p class="panel-note">Stabilumas: kiekvienam tiriamajam pirmiausia skaičiuojama 10 pasirašytų koreliacijų porų mediana tarp penkių OOF pakartojimų, po to pateikiama atrinktų tiriamųjų suvestinė. Atkarpos – kvartiliai, ne pasikliautinieji intervalai. Skalių poros palyginamos tam pačiam modeliui ir bazinei įvesčiai.</p><div id="diagnostics-stability-plot"></div><div id="diagnostics-stability-table"></div><div id="diagnostics-score-plot"></div><div id="diagnostics-score-table"></div></section>
-<section aria-labelledby="diagnostics-baseline-title"><h3 id="diagnostics-baseline-title">Bazinės įvesties poveikis</h3><p class="panel-note">Modelio ir nulinės bazinės įvesties žemėlapiai lyginami poromis prie to paties išsaugoto modelio. Bendra nulinė bazinė įvestis tarp pakartojimų padeda atskirti modelio mokymo skirtumus nuo bazinės įvesties skirtumų.</p><label class="result-metric">Rodiklis<select id="diagnostics-baseline-metric"><option value="rho_median">Spearmano ρ mediana</option><option value="top10_jaccard_median">Top 10 % Jaccard mediana</option><option value="relative_l1_median">Santykinio L1 pokyčio mediana</option></select></label><div id="diagnostics-baseline-plot"></div><div id="diagnostics-baseline-table"></div></section>
-<section aria-labelledby="diagnostics-convergence-title"><h3 id="diagnostics-convergence-title">IG žemėlapio konvergencija</h3><p class="panel-note">Lyginami žemėlapiai didinant integravimo žingsnius. Koreliacija ir žemėlapio pokytis vertinami atskirai nuo IG pilnumo. Pilnumo patikrų skaičius nėra stabilumą praėjusių tiriamųjų skaičius. Lentelėje pateikiama kiekvieno vykdymo didžiausių absoliučių liekanų ir liekanos / tolerancijos medianos bei maksimumai; n – galiojančių vykdymų skaičius. Liekana / tolerancija ≤ 1 atitinka esamą pilnumo taisyklę: |IG suma − skalės pokytis| ≤ 1e-4 + 0,01 × |skalės pokytis|. M1 ir M1-TF CE pilnumas tikrinamas atskiram vaizdui; M2-TFA tikimybės pilnumas – tiriamojo lygmeniu.</p><label class="result-metric">Rodiklis<select id="diagnostics-convergence-metric"><option value="rho_median">Spearmano ρ mediana</option><option value="relative_l1_median">Santykinio L1 pokyčio mediana</option><option value="relative_l1_max">Didžiausias santykinis L1 pokytis</option><option value="top10_jaccard_median">Top 10 % Jaccard mediana</option></select></label><div id="diagnostics-convergence-plot"></div><div id="diagnostics-convergence-table"></div></section>
-<h3>Aprėptis ir ribos</h3><div id="diagnostics-notes"></div>
-</div></div></details></template></section>
+</style><details class="study-section" id="xai-diagnostics">
+  <summary>XAI diagnostika · post hoc palyginimai</summary>
+  <div class="study-content">
+    <h2>XAI diagnostika</h2>
+    <p class="diagnostic-warning">Palyginau trijų išsaugotų modelių paaiškinimus. Pagrindinėje patikroje nė vienam iš 51 dalyvio nepatvirtinau paaiškinimų stabilumo. Tai galioja visiems trims modeliams taikant integruotųjų gradientų (IG) ir įvesties dalių uždengimo metodus. Čia žemėlapius naudoju tik papildomai patikrai.</p>
+    <p class="panel-note" id="diagnostics-state" role="status">Atvėrus skyrių įkeliama suvestinė.</p>
+    <div id="diagnostics-content" hidden>
+      <p class="panel-note" id="diagnostics-coverage"></p>
+      <p class="panel-note" id="diagnostics-protocol"></p>
+      <div class="analysis-selector">
+        <label>Modelis<select id="diagnostics-model"></select></label>
+        <label>Aiškinamas įvertis<select id="diagnostics-score"><option value="logit">Klasės įvertis (logitas)</option><option value="margin">Klasių įverčių skirtumas</option><option value="probability">Klasės tikimybė</option></select></label>
+      </div>
+      <section aria-labelledby="diagnostics-score-title">
+        <h3 id="diagnostics-score-title">Paaiškinimų stabilumas</h3>
+        <p class="panel-note">Kiekvienam dalyviui iš penkių pakartojimų sudariau 10 porų ir apskaičiavau žemėlapių koreliacijų medianą. Taip pat palyginau to paties modelio skirtingų įverčių žemėlapius.</p>
+        <div id="diagnostics-stability-plot"></div><div id="diagnostics-stability-table"></div>
+        <div id="diagnostics-score-plot"></div><div id="diagnostics-score-table"></div>
+      </section>
+      <section aria-labelledby="diagnostics-baseline-title">
+        <h3 id="diagnostics-baseline-title">Atskaitos poveikis</h3>
+        <p class="panel-note">Tam pačiam modeliui palyginau dvi paaiškinimo atskaitas. Vieną sudaro modelio mokymo duomenų vidurkis, kitą – vien nuliai.</p>
+        <label class="result-metric">Rodiklis<select id="diagnostics-baseline-metric"><option value="rho_median">Spearmano koreliacijos mediana</option><option value="top10_jaccard_median">10 % svarbiausių ryšių sutapimas (Jaccardo mediana)</option><option value="relative_l1_median">Santykinio L1 pokyčio mediana</option></select></label>
+        <div id="diagnostics-baseline-plot"></div><div id="diagnostics-baseline-table"></div>
+      </section>
+      <section aria-labelledby="diagnostics-convergence-title">
+        <h3 id="diagnostics-convergence-title">Integravimo žingsnių poveikis</h3>
+        <p class="panel-note">Patikrinau, kiek žemėlapiai kinta didinant žingsnių skaičių. Atskirai tikrinau pilnumą – ar ryšiams priskirtų indėlių suma atitinka aiškinamo įverčio pokytį nuo atskaitos.</p>
+        <label class="result-metric">Rodiklis<select id="diagnostics-convergence-metric"><option value="rho_median">Spearmano koreliacijos mediana</option><option value="relative_l1_median">Santykinio L1 pokyčio mediana</option><option value="relative_l1_max">Didžiausias santykinis L1 pokytis</option><option value="top10_jaccard_median">10 % svarbiausių ryšių sutapimas (Jaccardo mediana)</option></select></label>
+        <div id="diagnostics-convergence-plot"></div><div id="diagnostics-convergence-table"></div>
+        <details class="analysis-detail">
+          <summary>Kaip tikrinau pilnumą</summary>
+          <p class="panel-note">Pilnumą laikiau pakankamu, kai absoliuti paklaida neviršijo 0,0001 ir 1 % absoliutaus įverčio pokyčio sumos. Lentelėje rodau didžiausių paklaidų medianą, didžiausią reikšmę ir galiojančių skaičiavimų skaičių. Paklaidą pateikiu ir kaip leistinos paklaidos dalį. Santykis iki 1 imtinai atitinka pilnumo taisyklę.</p>
+        </details>
+      </section>
+      <h3>Analizės ribos</h3>
+      <div id="diagnostics-notes"></div>
+    </div>
+  </div>
+</details>
+</template></section>
   </main>
   <footer>MODMA · 128 EEG kanalai · metodinis magistrinio darbo tyrimas · KTU</footer>
 </body>

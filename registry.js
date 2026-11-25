@@ -96,11 +96,22 @@ async function loadResults(){
     catch(error){byId('results-content').hidden=true;byId('results-state').textContent='Analizės neįkeltos. '+error.message;return null;}
     finally{resultsPromise=null;}})();return resultsPromise;
 }
+const diagnosticLimitations = {
+  "5 iš anksto pasirinkti įrašai, ne visa 51 įrašo kohorta; tai nėra reprezentatyvios imties įvertis.": "Iš anksto pasirinkau penkis įrašus. Išvadas taikau tik šiems įrašams.",
+  "Istorinis 0/51 ir originalus protokolas nepakeisti; diagnostinės koreliacijos nesuteikia naujo PASS.": "Stabilumą vertinu pagal pradinę tyrimo patikrą. Penkių įrašų palyginimus naudoju tik diagnostikai.",
+  "CE tikimybė – vaizdų tikimybių vidurkis; LR – sigmoid nuo vidutinio pasirašyto sprendimo logito. LR logitas ir margin tapatūs.": "M1 ir M1-TF tikimybes suvidurkinau per vaizdus. M2-TFA tikimybę gavau iš vidutinio įverčio su ženklu. Šio modelio logitas sutampa su klasių įverčių skirtumu.",
+  "Nulinis baseline nėra patvirtintas neutralus ar fiziologinis EEG; jo poveikis neapima visų galimų baseline.": "Nulį naudojau kaip bendrą skaičiavimo atskaitą. Palyginau dvi konkrečias atskaitas.",
+  "CPU, FP32 enkoderis ir FP64 kaupimas / tikimybės; tai nėra originalaus CUDA skaitinio kelio bitinis pakartojimas.": "Skaičiavau centriniame procesoriuje. Požymių išskyrimui naudojau 32 bitų tikslumą, sumoms ir tikimybėms – 64 bitų.",
+  "Native/zero poveikis gali sąveikauti su modeliu; tai nėra adityvus priežasčių procentinis išskaidymas.": "Atskaitos poveikį vertinu atskirai kiekvienam modeliui.",
+  "Santykinės L1 vardiklis: konvergencijai tankesnis tinklas, baseline palyginimui native. Undefined reikšmės pateiktos null.": "Santykinį L1 pokytį skaičiavau pagal daugiau žingsnių turintį žemėlapį arba pagal mokymo vidurkio atskaitą, priklausomai nuo palyginimo. Neapskaičiuojamas reikšmes žymiu brūkšniu.",
+  "Score palyginimo L1 atskaita – antrasis score; logitų ir tikimybės vienetai bei skalės skiriasi. Rangų panašumas nėra dydžių lygybė.": "Įverčių porose L1 atskaita laikiau antrąjį įvertį. Vertindamas rangų panašumą, lyginu ryšių eilę pagal svarbą.",
+  "Pilnumo patikros skaičiuojamos vaizdams, išskyrus LR subject tikimybę. Šie vienetai nėra papildomi nepriklausomi tiriamieji.": "Pilnumą tikrinau atskiriems vaizdams. M2-TFA tikimybės pilnumą tikrinau dalyvio lygmeniu."
+};
 let xaiDiagnostics=null,diagnosticsRequest=0;
-const diagnosticScoreNames={logit:'Klasės logitas',margin:'Logitų skirtumas',probability:'Klasės tikimybė'};
-const diagnosticBaselineNames={native:'Modelio bazė',zero:'Nulinė bazė'};
+const diagnosticScoreNames={logit:'Klasės įvertis (logitas)',margin:'Klasių įverčių skirtumas',probability:'Klasės tikimybė'};
+const diagnosticBaselineNames={native:'Mokymo vidurkis',zero:'Nulinė atskaita'};
 const diagnosticPairNames={'logit-margin':'Logitas ↔ skirtumas','logit-probability':'Logitas ↔ tikimybė','margin-probability':'Skirtumas ↔ tikimybė'};
-const diagnosticMetricNames={rho_median:'Spearmano ρ mediana',top10_jaccard_median:'Top 10 % Jaccard mediana',relative_l1_median:'Santykinio L1 pokyčio mediana',relative_l1_max:'Didžiausias santykinis L1 pokytis'};
+const diagnosticMetricNames={rho_median:'Spearmano koreliacijos mediana',top10_jaccard_median:'10 % svarbiausių ryšių sutapimas',relative_l1_median:'Santykinio L1 pokyčio mediana',relative_l1_max:'Didžiausias santykinis L1 pokytis'};
 function validateDiagnostics(d){
   finiteTree(d);
   if(d?.kind==='xai_posthoc'&&d.status==='MISSING')return;
@@ -114,7 +125,7 @@ function validateDiagnostics(d){
     ||d.status==='COMPLETE'&&(d.coverage.completed_subjects!==d.coverage.requested_subjects||d.coverage.completed_subject_models!==d.coverage.expected_subject_models)
     ||!d.protocol||d.protocol.selection!=='prespecified_manifest_indices_0_10_20_30_40'||!integer(d.protocol.comparison_steps)||!['native_steps','zero_steps'].every(k=>Array.isArray(d.protocol[k])&&d.protocol[k].every(integer))
     ||!['baseline_note','interpretation','selection'].every(k=>typeof d.protocol[k]==='string')
-    ||!['limitations','errors'].every(k=>Array.isArray(d[k])&&d[k].every(v=>typeof v==='string')))throw Error('Netinkama post hoc diagnostikos schema');
+    ||!['limitations','errors'].every(k=>Array.isArray(d[k])&&d[k].every(v=>typeof v==='string')))throw Error('Suvestinės duomenų struktūra neatitinka numatytos.');
   const fields={score_stability:['n_subjects','n_valid','median','q25','q75','min','max'],baseline_effect:['n','n_valid','rho_median','rho_min','top10_jaccard_median','relative_l1_median'],score_comparison:['n','n_valid','rho_median','top10_jaccard_median'],convergence:['from_steps','to_steps','n','n_valid','rho_median','rho_min','relative_l1_median','relative_l1_max','top10_jaccard_median','completeness_passed','completeness_total']};
   for(const [table,keys]of Object.entries(fields))if(!Array.isArray(d[table])||d[table].length>1000||!d[table].every(r=>r&&d.models.includes(r.model)&&keys.every(k=>numeric(r[k]))
     &&(table==='baseline_effect'||Object.hasOwn(diagnosticBaselineNames,r.baseline))&&(table==='score_comparison'?['logit-margin','logit-probability','margin-probability'].includes(r.pair):Object.hasOwn(diagnosticScoreNames,r.score))))throw Error('Netinkama diagnostikos lentelė');
@@ -129,9 +140,9 @@ function validateDiagnostics(d){
 }
 async function loadDiagnostics(){
   const request=++diagnosticsRequest;xaiDiagnostics=null;byId('diagnostics-content').hidden=true;
-  byId('diagnostics-state').textContent='Tikrinama atskira post hoc suvestinė…';
+  byId('diagnostics-state').textContent='Įkeliama diagnostikos suvestinė…';
   try{const d=await inspectionJson('xai-diagnostics');if(request!==diagnosticsRequest)return;validateDiagnostics(d);
-    if(d.status==='MISSING'){byId('diagnostics-state').textContent='Post hoc diagnostikos suvestinė dar nepateikta. Trūkstami rezultatai nelaikomi nuliais ar sėkminga patikra.';return;}
+    if(d.status==='MISSING'){byId('diagnostics-state').textContent='Diagnostikos suvestinė dar nepateikta.';return;}
     xaiDiagnostics=d;options('diagnostics-model',d.models.map(m=>[m,m]),d.models.includes(byId('diagnostics-model').value)?byId('diagnostics-model').value:d.models[0]);
     if(!Object.hasOwn(diagnosticScoreNames,byId('diagnostics-score').value))byId('diagnostics-score').value='logit';
     renderDiagnostics();
@@ -139,33 +150,33 @@ async function loadDiagnostics(){
 }
 function diagnosticRows(table){return xaiDiagnostics[table].filter(r=>r.model===byId('diagnostics-model').value&&(table==='score_comparison'||r.score===byId('diagnostics-score').value));}
 function diagnosticCoverage(row){const n=row.n_subjects??row.n;return count(row.n_valid)+' / '+count(n);}
-function diagnosticRowState(row){const n=row.n_subjects??row.n;return row.n_valid===null||n===null?'Aprėptis nenurodyta':row.n_valid===0?'Nėra galiojančių palyginimų':row.n_valid<n?'Dalis palyginimų negalioja':'Pateikti visi palyginimai';}
+function diagnosticRowState(row){const n=row.n_subjects??row.n;return row.n_valid===null||n===null?'Skaičius nenurodytas':row.n_valid===0?'Nėra galiojančių palyginimų':row.n_valid<n?'Galioja dalis palyginimų':'Galioja visi palyginimai';}
 function diagnosticResidual(value){return precise(value.median)+' / '+precise(value.max)+'; n = '+count(value.n_valid);}
 function diagnosticPlot(id,title,rows,metric,label){
   const host=byId(id);host.replaceChildren();
   if(!rows.length){const p=document.createElement('p');p.className='panel-note';p.textContent='Šiam pasirinkimui rezultatų nepateikta.';host.appendChild(p);return;}
   const values=rows.map(r=>r[metric]).filter(Number.isFinite),domain=metric.startsWith('rho')?[-1,1]:metric.includes('jaccard')?[0,1]:[0,Math.max(...values,0)||1];
-  resultPlot(host,title,rows.map(r=>({label:label(r),value:r[metric]})),{domain,axis:diagnosticMetricNames[metric],note:'Tik post hoc diagnostika. Taškai – išmatuotos suvestinės; trūkstamas įvertis nevaizduojamas kaip nulis. Tikslios reikšmės ir galiojančių palyginimų skaičiai pateikti lentelėje.'});
+  resultPlot(host,title,rows.map(r=>({label:label(r),value:r[metric]})),{domain,axis:diagnosticMetricNames[metric],note:'Tikslias reikšmes ir galiojančių palyginimų skaičių pateikiu lentelėje.'});
 }
 function renderDiagnostics(){
   const d=xaiDiagnostics;if(!d)return;const c=d.coverage;
   byId('diagnostics-content').hidden=false;
-  byId('diagnostics-state').textContent=({COMPLETE:'Diagnostikos skaičiavimai baigti',PARTIAL:'Diagnostika dalinė',FAILED:'Diagnostikos vykdymas nepavyko'})[d.status]+' · '+dateText(d.created_at)+'. Tai nėra stabilumo patikros rezultatas.';
-  byId('diagnostics-coverage').textContent='Baigti tiriamieji: '+count(c.completed_subjects)+' / '+count(c.requested_subjects)+' atrinktų iš '+count(c.cohort_subjects)+'. Tiriamojo ir modelio vienetai: '+count(c.completed_subject_models)+' / '+count(c.expected_subject_models)+'. '+count(c.models)+' modeliai · '+count(c.repeats)+' OOF pakartojimai. Ribota atranka nėra visos kohortos pervertinimas.';
-  byId('diagnostics-protocol').textContent='Iš anksto pasirinkti įrašų indeksai: 0, 10, 20, 30, 40. Palyginimai ties '+count(d.protocol.comparison_steps)+' žingsnių. Modelio bazės tinklas: '+d.protocol.native_steps.join(' → ')+'. Nulinės bazės tinklas: '+d.protocol.zero_steps.join(' → ')+'. '+d.protocol.baseline_note+' '+d.protocol.interpretation;
+  byId('diagnostics-state').textContent=({COMPLETE:'Diagnostikos skaičiavimus baigiau.',PARTIAL:'Baigiau dalį skaičiavimų.',FAILED:'Diagnostikos skaičiavimų užbaigti nepavyko.'})[d.status];
+  byId('diagnostics-coverage').textContent='Iš anksto atrinkau '+count(c.requested_subjects)+' iš '+count(c.cohort_subjects)+' dalyvio. Įtraukiau '+count(c.completed_subjects)+' iš '+count(c.requested_subjects)+' atrinktų dalyvių ir įvertinau '+count(c.completed_subject_models)+' iš '+count(c.expected_subject_models)+' dalyvio ir modelio derinių. Kiekvieną modelį vertinau '+count(c.repeats)+' kartus su mokymui nenaudotais duomenimis.';
+  byId('diagnostics-protocol').textContent='Poras palyginau ties '+count(d.protocol.comparison_steps)+' žingsnių. Mokymo vidurkio atskaitai naudojau '+d.protocol.native_steps.join(', ')+' žingsnių. Nulinei atskaitai naudojau '+d.protocol.zero_steps.join(', ')+' žingsnių.';
   const stability=diagnosticRows('score_stability'),score=diagnosticRows('score_comparison'),baseline=diagnosticRows('baseline_effect'),convergence=diagnosticRows('convergence');
   byId('diagnostics-stability-plot').replaceChildren();
-  if(stability.length)resultPlot('diagnostics-stability-plot','Stabilumas tarp OOF pakartojimų',stability.map(r=>({label:diagnosticBaselineNames[r.baseline],value:r.median,low:r.q25,high:r.q75})),{domain:[-1,1],axis:'Pasirašytas Spearmano ρ',note:'Taškas – tiriamųjų medianų mediana; atkarpa – 25–75 procentiliai. Tai nėra pasikliautinieji intervalai ar naujas PASS kriterijus.'});
+  if(stability.length)resultPlot('diagnostics-stability-plot','Paaiškinimų panašumas tarp pakartojimų',stability.map(r=>({label:diagnosticBaselineNames[r.baseline],value:r.median,low:r.q25,high:r.q75})),{domain:[-1,1],axis:'Spearmano koreliacija (ρ)',note:'Tašku pažymėjau dalyvių medianų medianą, atkarpa – vidurinę pusę reikšmių (25–75 procentilius).'});
   else{const p=document.createElement('p');p.className='panel-note';p.textContent='Šiam pasirinkimui stabilumo rezultatų nepateikta.';byId('diagnostics-stability-plot').appendChild(p);}
-  dataTable('diagnostics-stability-table','Tiriamųjų stabilumo suvestinė',['Bazinė įvestis','Skalė','Galioja / n','Min','Q25','Mediana','Q75','Max','Aprėpties būsena'],stability.map(r=>[diagnosticBaselineNames[r.baseline],diagnosticScoreNames[r.score],diagnosticCoverage(r),...['min','q25','median','q75','max'].map(k=>precise(r[k])),diagnosticRowState(r)]));
-  diagnosticPlot('diagnostics-score-plot','Skalių porų žemėlapių sutapimas',score,'rho_median',r=>diagnosticBaselineNames[r.baseline]+' · '+diagnosticPairNames[r.pair]);
-  dataTable('diagnostics-score-table','Visos skalių poros pasirinktame modelyje; šiai lentelei skalės filtras netaikomas',['Bazinė įvestis','Skalių pora','Galioja / n','ρ mediana','Top 10 % Jaccard','Aprėpties būsena'],score.map(r=>[diagnosticBaselineNames[r.baseline],diagnosticPairNames[r.pair],diagnosticCoverage(r),precise(r.rho_median),precise(r.top10_jaccard_median),diagnosticRowState(r)]));
+  dataTable('diagnostics-stability-table','Stabilumo suvestinė',['Atskaita','Aiškinamas įvertis','Galioja / iš viso','Mažiausia','25-asis procentilis','Mediana','75-asis procentilis','Didžiausia','Būsena'],stability.map(r=>[diagnosticBaselineNames[r.baseline],diagnosticScoreNames[r.score],diagnosticCoverage(r),...['min','q25','median','q75','max'].map(k=>precise(r[k])),diagnosticRowState(r)]));
+  diagnosticPlot('diagnostics-score-plot','Žemėlapių panašumas keičiant aiškinamą įvertį',score,'rho_median',r=>diagnosticBaselineNames[r.baseline]+' · '+diagnosticPairNames[r.pair]);
+  dataTable('diagnostics-score-table','Pasirinkto modelio įverčių poros',['Atskaita','Įverčių pora','Galioja / iš viso','ρ mediana','10 % ryšių sutapimas (Jaccardo)','Būsena'],score.map(r=>[diagnosticBaselineNames[r.baseline],diagnosticPairNames[r.pair],diagnosticCoverage(r),precise(r.rho_median),precise(r.top10_jaccard_median),diagnosticRowState(r)]));
   const bm=byId('diagnostics-baseline-metric').value||'rho_median',cm=byId('diagnostics-convergence-metric').value||'rho_median';
-  diagnosticPlot('diagnostics-baseline-plot','Modelio ir nulinės bazės palyginimas',baseline,bm,r=>diagnosticScoreNames[r.score]);
-  dataTable('diagnostics-baseline-table','Porinis bazinės įvesties poveikis prie to paties modelio',['Skalė','Galioja / n','ρ mediana','ρ min','Top 10 % Jaccard','Santykinis L1','Aprėpties būsena'],baseline.map(r=>[diagnosticScoreNames[r.score],diagnosticCoverage(r),...['rho_median','rho_min','top10_jaccard_median','relative_l1_median'].map(k=>precise(r[k])),diagnosticRowState(r)]));
-  diagnosticPlot('diagnostics-convergence-plot','IG žingsnių palyginimas',convergence,cm,r=>diagnosticBaselineNames[r.baseline]+' · '+count(r.from_steps)+' → '+count(r.to_steps));
-  dataTable('diagnostics-convergence-table','Konvergencija; pilnumas ir vykdymų didžiausių liekanų mediana / maksimumas',['Bazė','Žingsniai','Galioja / n','ρ mediana','ρ min','Santykinis L1 med.','Santykinis L1 max','Top 10 % Jaccard','Pilnumo vienetas','Pilnumas: praėjo / tikrinta','Absoliuti liekana: med. / max; n','Liekana / tolerancija: med. / max; n','Aprėpties būsena'],convergence.map(r=>[diagnosticBaselineNames[r.baseline],count(r.from_steps)+' → '+count(r.to_steps),diagnosticCoverage(r),...['rho_median','rho_min','relative_l1_median','relative_l1_max','top10_jaccard_median'].map(k=>precise(r[k])),r.completeness_scope==='subject'?'Tiriamasis':'Atskiras vaizdas',count(r.completeness_passed)+' / '+count(r.completeness_total),diagnosticResidual(r.max_abs_residual),diagnosticResidual(r.max_scaled_residual),diagnosticRowState(r)]));
-  dataTable('diagnostics-notes','Užregistruoti ribotumai ir vykdymo klaidos',['Tipas','Pastaba'],[...d.limitations.map(v=>['Ribotumas',v]),...d.errors.map(v=>['Vykdymo klaida',v])]);
+  diagnosticPlot('diagnostics-baseline-plot','Mokymo vidurkio ir nulinės atskaitos palyginimas',baseline,bm,r=>diagnosticScoreNames[r.score]);
+  dataTable('diagnostics-baseline-table','To paties modelio atskaitų palyginimas',['Aiškinamas įvertis','Galioja / iš viso','ρ mediana','Mažiausia ρ','10 % ryšių sutapimas (Jaccardo)','Santykinis L1','Būsena'],baseline.map(r=>[diagnosticScoreNames[r.score],diagnosticCoverage(r),...['rho_median','rho_min','top10_jaccard_median','relative_l1_median'].map(k=>precise(r[k])),diagnosticRowState(r)]));
+  diagnosticPlot('diagnostics-convergence-plot','Žemėlapių palyginimas pagal žingsnių skaičių',convergence,cm,r=>diagnosticBaselineNames[r.baseline]+' · '+count(r.from_steps)+' → '+count(r.to_steps));
+  dataTable('diagnostics-convergence-table','Žemėlapių pokyčiai ir pilnumo patikra',['Atskaita','Žingsniai','Galioja / iš viso','ρ mediana','Mažiausia ρ','L1 pokyčio mediana','Didžiausias L1 pokytis','10 % ryšių sutapimas (Jaccardo)','Kas tikrinta','Atitiko pilnumo taisyklę / tikrinta','Absoliuti paklaida (mediana / didžiausia, n)','Paklaidos dalis nuo leistinos (mediana / didžiausia, n)','Būsena'],convergence.map(r=>[diagnosticBaselineNames[r.baseline],count(r.from_steps)+' → '+count(r.to_steps),diagnosticCoverage(r),...['rho_median','rho_min','relative_l1_median','relative_l1_max','top10_jaccard_median'].map(k=>precise(r[k])),r.completeness_scope==='subject'?'Dalyvis':'Atskiras vaizdas',count(r.completeness_passed)+' / '+count(r.completeness_total),diagnosticResidual(r.max_abs_residual),diagnosticResidual(r.max_scaled_residual),diagnosticRowState(r)]));
+  dataTable('diagnostics-notes','Ribos ir pastabos',['Tipas','Pastaba'],[...d.limitations.map(v=>['Riba',diagnosticLimitations[v]??v]),...d.errors.map(v=>['Skaičiavimo klaida',v])]);
 }
 function supplementPicker(labelText,names){
   const label=document.createElement('label'),select=document.createElement('select'),box=document.createElement('div');
