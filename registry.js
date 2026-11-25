@@ -42,10 +42,14 @@ const xaiTimingNames={ig_with_convergence:'IG su konvergencijos bandymais',occlu
 const intervalText=value=>Array.isArray(value)?value.map(number).join(' – '):'—';
 const gate=value=>value===true?'Praeitas':value===false?'Nepraeitas':'Nenurodyta';
 
-function dataTable(target,caption,headers,rows){
+function dataTable(target,caption,headers,rows,showCaption=true){
   const host=typeof target==='string'?byId(target):target,wrap=document.createElement('div'),table=document.createElement('table');
   wrap.className='data-scroll';wrap.setAttribute('tabindex','0');wrap.setAttribute('role','region');wrap.setAttribute('aria-label',caption);
-  const cap=document.createElement('caption');cap.textContent=caption;table.appendChild(cap);
+  if (showCaption) {
+    const cap=document.createElement('caption');cap.textContent=caption;table.appendChild(cap);
+  } else {
+    table.setAttribute('aria-label',caption);
+  }
   const head=document.createElement('thead'),tr=document.createElement('tr');
   headers.forEach(text=>{const cell=document.createElement('th');cell.setAttribute('scope','col');cell.textContent=text;tr.appendChild(cell);});head.appendChild(tr);table.appendChild(head);
   const body=document.createElement('tbody');rows.forEach(values=>{const row=document.createElement('tr');values.forEach((value,i)=>{const cell=document.createElement('td');cell.textContent=value==null?'—':String(value);if(i===0)cell.className='wrap';row.appendChild(cell);});body.appendChild(row);});table.appendChild(body);wrap.appendChild(table);host.replaceChildren(wrap);
@@ -225,7 +229,7 @@ function orderedStages(stages){return Object.keys(stageNames).filter(key=>stages
 function stageVisuals(d){
   byId('sensitivity-overview').replaceChildren();byId('density-visual').replaceChildren();
   const stages=orderedStages(d.stages);
-  const codes={primary:'P',reliability:'R','loso-linear':'L',masked:'M','label-control':'E'},svg=resultFigure('sensitivity-overview','Visų etapų AUC matrica','P – pagrindinis; R – patikimumo atranka; L – LOSO; M – kanalų maskavimas; E – etikečių kontrolė; D – grafų tankis. NĮ – neįvertinama; — – modelis etape neskaičiuotas. Spalva rodo atstumą nuo 0,5, ne reikšmingumą.');
+  const codes={primary:'P',reliability:'R','loso-linear':'L',masked:'M','label-control':'E'},svg=resultFigure('sensitivity-overview','AUC matrica','P – pagrindinis; R – patikimumo atranka; L – LOSO; M – kanalų maskavimas; E – etikečių kontrolė; D – grafų tankis. NĮ – neįvertinama; — – modelis etape neskaičiuotas. Spalva rodo atstumą nuo 0,5, ne reikšmingumą.');
   svg.setAttribute('viewBox','0 0 900 '+(d.models.length*30+65));
   stages.forEach((s,j)=>svgElement(svg,'text',{x:124+j*76,y:24,'text-anchor':'middle',fill:'var(--ink)','font-size':13},codes[s.key]||'D'+Math.round(Number(s.key.slice(8))*100)));
   d.models.forEach((model,i)=>{const y=40+i*30;svgElement(svg,'text',{x:78,y:y+18,'text-anchor':'end',fill:'var(--ink)','font-size':14},model);
@@ -236,7 +240,7 @@ function stageVisuals(d){
   });
   const density=stages.filter(s=>s.key.startsWith('density_')).sort((a,b)=>Number(a.key.slice(8))-Number(b.key.slice(8)));
   if(!density.length)return;
-  const plot=resultFigure('density-visual','Penki grafų tankiai · AUC jautrumas','Tik M0a ir M0a-L11. Linijos jungia išsaugotus taškus; jos nėra naujas modelis ar interpoliuotas rezultatas. 95 % intervalai – atitinkamų etapų lentelėse ir grafikuose.');plot.setAttribute('viewBox','0 0 820 310');
+  const plot=resultFigure('density-visual','Penki grafų tankiai · AUC jautrumas','Rodau M0a ir M0a-L11 rezultatus esant penkiems grafų tankiams. Linijomis sujungiau apskaičiuotus taškus. 95 % pasikliautinieji intervalai pateikti atskirų etapų lentelėse ir diagramose.');plot.setAttribute('viewBox','0 0 820 310');
   const px=v=>80+(v-.1)/.3*620,py=v=>250-v*200;
   for(const v of [0,.25,.5,.75,1]){svgElement(plot,'line',{x1:80,x2:700,y1:py(v),y2:py(v),stroke:v===.5?'var(--ink)':'var(--line)','stroke-dasharray':v===.5?'5 4':'none'});svgElement(plot,'text',{x:65,y:py(v)+4,'text-anchor':'end',fill:'var(--ink)','font-size':13},String(v));}
   density.forEach(s=>svgElement(plot,'text',{x:px(Number(s.key.slice(8))),y:275,'text-anchor':'middle',fill:'var(--ink)','font-size':13},s.key.slice(8)));
@@ -278,19 +282,20 @@ function renderRegistryPlots(d){
   }
   const timeRows=d.times.map(r=>({label:(stageNames[r.stage]||r.stage)+' · '+r.model,value:r.seconds}));
   resultPlot('time-results','Išsaugotos etapų ir modelių trukmės',timeRows,{domain:[0,Math.max(1,...timeRows.map(r=>r.value).filter(Number.isFinite))],axis:'Sekundės',note:'Rodomi atskirai užregistruoti laikai. Jų suma nėra viso tyrimo sieninio laiko ar nepertraukiamo GPU naudojimo matavimas.'});
-  dataTable('limitations-results','Ribos pagal Word planą, protokolą ir išsaugotus artefaktus',['Sritis','Kas riboja išvadą'],[
-    ['Baigtis','MODMA MDD/HC ≠ gydymo atsakas. S-A neatliktas; temos ir metodinės dalies atitiktis derinama su vadovu. Klinikinė validacija nepriklauso šio metodinio magistro darbo priėmimui.'],
-    ['Imtis','51 tiriamasis: 24 MDD, 27 HC. CV ir epochų grupės nedidina nepriklausomos imties. Maža imtis ir demografiniai skirtumai.'],
-    ['QC ir ICA','Automatinė ICLabel ≥0,90 atranka skiriasi nuo plane numatytos rankinės komponentų peržiūros. 2026-11-11 autoriaus kohortos patvirtinimas nėra atskirų komponentų anotacijos.'],
-    ['Apdorojimas','1–45 Hz skiriasi nuo ICLabel 1–100 Hz prielaidų; interpoliacija veikia junglumą. 15 epochų įverčiai kinta; elektrodai pagal standartinį, ne individualų šabloną.'],
-    ['Vertinimas','Atranka ir scaler tik mokymo dalyje. Slenkstis parinktas mokymo prognozėse; bootstrap neapima naujo modelių mokymo. LOSO tik 6 tiesiniams modeliams.'],
-    ['Modelių palyginimas','Graph6 ir L11 skiriasi ir grafų sudarymo konvencijomis, ne vien požymių skaičiumi. Top-k + MST gali viršyti tikslinį tankį. M1-TN nėra pilna Brain Network Transformer reprodukcija.'],
-    ['Permutacijos','Tik C0 pilnas B=200; aštuoni sustabdyti modeliai neturi tikslaus p ar pilno nulinio pasiskirstymo. Etikečių kontrolė – atskira viena permaišymo realizacija.'],
-    ['XAI','IG ir okliuzijos stabilumas 0/51 visiems 3 modeliams. Pilnumas, randomizacijos ir stabilumas – skirtingi vartai. 0,4 ir 0,2 yra projekto, ne universalios ribos.'],
-    ['Plano XAI apimtis','Pagrindinis baseline – mokymo vidurkis; pilnos kohortos zero-baseline jautrumas šiame registre neįrodytas. Grad-CAM tik papildomas M1 vaizdas, ne transformerio paaiškinimas.'],
-    ['Erdvinė interpretacija','Sensorių / galvos paviršiaus regionai nėra žievės šaltiniai. Kohortos vidurkinimas nepašalina nestabilumo; papildymo regionų vidurkiai neturi bootstrap intervalų.'],
-    ['Papildymai','Post hoc ir aprašomieji. Demografinis vieno kintamojo AUC be CV. kNN / tapatybės agregatai suapvalinti. Parametrų skaičius iš kodo; asociacija neįrodo priežasties.'],
-    ['Sąnaudos','Pilna grandinė prasideda nuo paruoštų matricų, ne nuo EEG. n=10 pilnų kvietimų p95 nėra patikimas populiacijos uodegos įvertis. Viso tyrimo compute laikas nežinomas.']]);
+  dataTable('limitations-results','Tyrimo ribos',['Sritis','Kas riboja išvadą'],[
+    ["Tyrimo tikslas","Pagal MODMA duomenis tyriau, kaip atskirti depresijos ir kontrolinę grupes. Gydymo atsako ir klinikinio tinkamumo nevertinau."],
+    ["Imtis","Vertinau nedidelę 51 dalyvio imtį (24 depresijos grupėje ir 27 kontrolinėje). Grupės skiriasi demografine sudėtimi. Pakartojimai imties nedidina."],
+    ["Kokybės patikra","Komponentus atrinkau automatiškai, taikydamas ICLabel slenkstį 0,90. Plane numatyta rankinė peržiūra. Patvirtinau visą dalyvių grupę."],
+    ["Signalo paruošimas","Naudojau 1–45 Hz juostą, nors ICLabel numato 1–100 Hz. Junglumo įverčiams įtakos turi kanalų atkūrimas ir pasirinktos 15 signalo atkarpų. Elektrodų padėtis rodau pagal standartinį šabloną."],
+    ["Vertinimas","Požymius atrinkau, jų mastelį keičiau ir sprendimo slenkstį parinkau mokymo dalyje. Intervalus skaičiavau iš išsaugotų prognozių. Patikrą paliekant po vieną dalyvį taikiau 6 tiesiniams modeliams."],
+    ["Modelių palyginimas","Graph6 ir L11 skiriasi požymiais bei grafų sudarymo taisyklėmis. Stipriausių jungčių ir jungiamojo medžio derinys gali viršyti numatytą tankį. M1-TN įgyvendinau kaip supaprastintą „Brain Network Transformer“ variantą."],
+    ["Etikečių permaišymas","Visus 200 permaišymų atlikau tik C0. Kitus aštuonis bandymus sustabdžiau anksčiau, todėl neturiu jų tikslių p reikšmių ir viso atsitiktinių rezultatų pasiskirstymo. Etikečių kontrolei naudojau atskirą vienkartinį permaišymą."],
+    ["Paaiškinimų patikimumas","Abiem paaiškinimo metodais stabilumo kriterijų visuose trijuose modeliuose pasiekė 0 iš 51 dalyvio. Pilnumą, atsitiktinumo patikras ir stabilumą vertinau atskirai. 0,4 ir 0,2 ribas taikiau šiame tyrime."],
+    ["Paaiškinimų apimtis","Atskaitai naudojau mokymo duomenų vidurkį. Nulinę atskaitą tikrinau atrinktiems dalyviams. „Grad-CAM“ pateikiau tik kaip papildomą M1 modelio vaizdą."],
+    ["Jutiklių padėtis","Rodau galvos paviršiaus jutiklių ryšius. Grupių vidurkiai nepatvirtina atskirų paaiškinimų stabilumo. Regionų vidurkiams pasikliautinųjų intervalų nepateikiau."],
+    ["Papildomi skaičiavimai","Papildomas analizes atlikau po pagrindinio vertinimo. Vieno demografinio rodiklio AUC skaičiavau be kryžminės patikros. Suapvalinau artimiausių kaimynų ir tapatybės rodiklius, o parametrų skaičių paėmiau iš kodo. Sąsajas vertinu kaip aprašomąsias."],
+    ["Skaičiavimo trukmė","Trukmę matavau nuo paruoštų junglumo matricų. Iš 10 matavimų apskaičiuotas 95-asis procentilis yra apytikslis. Bendros tyrimo skaičiavimo trukmės neturiu."]
+  ],false);
 }
 function renderResults(){
   const d=studyResults;if(!d)return;
@@ -327,7 +332,7 @@ function renderResults(){
 function renderCalibration(){
   if(!studyResults)return;const row=studyResults.primary.find(r=>r.model===byId('analysis-model').value);if(!row)return;
   byId('repeat-auc').textContent='OOF AUC per pakartojimą: '+(row.auc_by_repeat?.map((v,i)=>(i+1)+': '+number(v)).join(' · ')||'—');
-  byId('repeat-visual').replaceChildren();resultPlot('repeat-visual',row.model+' · penki OOF pakartojimai',(row.auc_by_repeat||[]).map((v,i)=>({label:'Pakartojimas '+(i+1),value:v})),{reference:.5,axis:'AUC',note:'Kiekviename pakartojime sujungtos tiriamųjų OOF prognozės. Tai nėra penkios nepriklausomos kohortos; nėra naujo mokymo.'});
+  byId('repeat-visual').replaceChildren();resultPlot('repeat-visual',row.model+' · penki OOF pakartojimai',(row.auc_by_repeat||[]).map((v,i)=>({label:'Pakartojimas '+(i+1),value:v})),{reference:.5,axis:'AUC',note:'Kiekvienam pakartojimui sujungiau tikrinimo dalyse gautas prognozes. Visuose pakartojimuose vertinau tuos pačius dalyvius.'});
   const svg=byId('calibration-chart');svg.replaceChildren();const curve=row.calibration_curve;
   if(!curve||!curve.prob_pred.length){svg.toggleAttribute('hidden',true);dataTable('calibration-table','Kalibracijos duomenų nėra',['Prognozuota tikimybė','Stebėta dalis'],[]);return;}
   svg.toggleAttribute('hidden',false);const ink=getComputedStyle(hosts[0].host).getPropertyValue('--ink').trim(),teal=getComputedStyle(hosts[0].host).getPropertyValue('--teal').trim();
@@ -337,7 +342,7 @@ function renderCalibration(){
   svgElement(svg,'text',{x:219,y:276,'text-anchor':'middle',fill:ink,'font-size':13},'Prognozuota tikimybė');
   svgElement(svg,'text',{x:48,y:16,fill:ink,'font-size':13},'Stebėta dalis');
   curve.prob_pred.forEach((p,i)=>svgElement(svg,'circle',{cx:48+342*p,cy:232-206*curve.prob_true[i],r:4,fill:teal}));
-  dataTable('calibration-table',row.model+' · ne tušti kalibracijos intervalai',['Prognozuota tikimybė','Stebėta dalis'],curve.prob_pred.map((p,i)=>[number(p),number(curve.prob_true[i])]));
+  dataTable('calibration-table',row.model+' kalibracijos intervalai',['Prognozuota tikimybė','Stebėta dalis'],curve.prob_pred.map((p,i)=>[number(p),number(curve.prob_true[i])]));
 }
 
 function xaiLabel(label){return ({left_frontal:'Kairė priekinė',left_central:'Kairė centrinė',left_parietal:'Kairė momeninė',left_occipital:'Kairė pakaušio',left_temporal:'Kairė smilkinio',right_frontal:'Dešinė priekinė',right_central:'Dešinė centrinė',right_parietal:'Dešinė momeninė',right_occipital:'Dešinė pakaušio',right_temporal:'Dešinė smilkinio',midline:'Vidurio linija'})[label]||label;}

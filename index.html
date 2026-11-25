@@ -203,6 +203,8 @@ input[type=checkbox]{width:20px;height:20px;flex-shrink:0}.comparison-legend lab
 .analysis-selector,.calibration-layout,.result-figure,.data-scroll {min-width:0}
 .data-scroll table {font-size:.875rem}
 .data-scroll th,.data-scroll td {padding:.45rem .6rem;font-size:inherit}
+#limitations-results table {min-width:0}
+#limitations-results th,#limitations-results td {text-align:left;white-space:normal;vertical-align:top;overflow-wrap:anywhere}
 button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible {
   outline:3px solid var(--focus);outline-offset:2px;
 }
@@ -211,8 +213,8 @@ button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,
 <div id="results-content" hidden>
 <p class="panel-note">Per visus pakartojimus vertinta ta pati dalyvių grupė.</p>
 <details class="analysis-detail" open><summary>Pagrindiniai 14 modelių rezultatai</summary><p class="panel-note">Diagramoje – 13 EEG modelių ir kontrolinis modelis C0, kuris naudoja demografinius duomenis. AUC rodo, kaip gerai modelis atskiria grupes.</p><div id="primary-visual"></div><div id="primary-results"></div></details>
-<details class="analysis-detail" open><summary>Modelio pakartojimai ir kalibracija</summary><div class="analysis-selector"><label>Modelis<select id="analysis-model"></select></label><p class="repeat-strip" id="repeat-auc"></p></div><div class="calibration-layout"><svg id="calibration-chart" viewBox="0 0 430 280" role="img" aria-label="Modelio kalibracija: prognozuota tikimybė ir stebėta dalis"></svg><div id="calibration-table"></div></div><div id="repeat-visual"></div><p class="panel-note">Kalibracija iš vieno subjekto vidutinės OOF tikimybės per pakartojimus; tai nėra atskirų epochų kalibracija.</p></details>
-<details class="analysis-detail" open><summary>Jautrumo analizės · visi 10 išsaugotų etapų</summary><p class="panel-note">Pagrindinis tyrimas, patikimumo atranka, LOSO, kanalų maskavimas, etikečių kontrolė ir penki grafų tankiai. Skirtingų etapų metrikos nėra naujas bendras mokymas. LOSO apima tik tiesinius modelius; tankiai – M0a ir M0a-L11. Tuščia reikšmė nėra nulis.</p><div id="sensitivity-overview"></div><div id="density-visual"></div><div id="sensitivity-results"></div></details>
+<details class="analysis-detail" open><summary>Modelio pakartojimai ir kalibracija</summary><div class="analysis-selector"><label>Modelis<select id="analysis-model"></select></label><p class="repeat-strip" id="repeat-auc"></p></div><div class="calibration-layout"><svg id="calibration-chart" viewBox="0 0 430 280" role="img" aria-label="Modelio kalibracija: prognozuota tikimybė ir stebėta dalis"></svg><div id="calibration-table"></div></div><div id="repeat-visual"></div><p class="panel-note">Kiekvieno dalyvio prognozuotas tikimybes suvidurkinau per pakartojimus. Diagramoje prognozuotas tikimybes palyginau su stebėtomis dalimis.</p></details>
+<details class="analysis-detail" open><summary>Jautrumo analizė</summary><p class="panel-note">Palyginau 10 etapų ir patikrinau, kaip rezultatus keičia požymių atranka, dalies kanalų apribojimas, grupių žymių permaišymas, dalyvių skirstymas ir jungčių tankis. Patikrą paliekant po vieną dalyvį taikiau tik tiesiniams modeliams, o penkis tankius lyginau tik su M0a ir M0a-L11.</p><div id="sensitivity-overview"></div><div id="density-visual"></div><div id="sensitivity-results"></div></details>
 <details class="analysis-detail"><summary>Visų tinkamų duomenų variantas</summary><div id="all-valid-results"></div></details>
 <details class="analysis-detail"><summary>13 porinių modelių palyginimų · ΔAUC ir jo intervalas</summary><p class="panel-note">ΔAUC = A − B. Intervalas priklauso poriniam skirtumui, ne atskiram modeliui.</p><div id="comparison-results"></div></details>
 <details class="analysis-detail"><summary>9 modelių permutacijų šeima · tikras B, ribos ir Holm</summary><p class="panel-note" id="permutation-scope"></p><div id="permutation-results"></div></details>
@@ -221,7 +223,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,
 <details class="analysis-detail"><summary>58 etapų ir modelių laikai · tyrimo laiko ribos</summary><p class="panel-note" id="timing-scope"></p><div id="time-results"></div><h3>XAI metodų ir kontrolių skaičiavimo laikai</h3><p class="panel-note">Atskirai išsaugotų operacijų laikų sumos; tai nėra nepertraukiamas viso tyrimo CPU/GPU laikas. Modelio įkėlimas, paveikslų rengimas ir kohortos suvestinė neįtraukti. Istorinio vykdymo trukmės nėra dabartinės FP32 žemėlapių versijos rezultatai.</p><div id="xai-time-results"></div></details>
 <details class="analysis-detail" id="supplement-detail" hidden><summary>Papildomos aprašomosios suvestinės · nutekėjimas, demografija, lengvumas, atkuriamumas</summary><p class="diagnostic-warning" id="supplement-scope"></p><div id="supplement-results"></div></details>
 <details class="analysis-detail"><summary>Importuotų suvestinių kilmė ir SHA-256</summary><p class="panel-note" id="results-source"></p><div id="results-hashes"></div></details>
-<details class="analysis-detail" open><summary>Interpretavimo ribos ir Word plano atitiktis</summary><p class="diagnostic-warning">Skaičiavimai užbaigti; paaiškinimų patikimumas nepatvirtintas. Tai metodinis magistro darbo tyrimas. XAI žemėlapiai tik diagnostiniai, net kai jų pilnumas ar atskiros kontrolės praeina.</p><div id="limitations-results"></div><p class="panel-note">Grafikų principai: Word [9] van Wijk et al., 2010, p. 3–4 (slenksčių palyginimas), [10] Garrison et al., 2015, p. 6, 2 pav. (rodiklių kitimas per slenksčius), [29] Adebayo et al., 2018, p. 7, 4 pav. (pasirašytų koreliacijų ir kontrolių palyginimas). AUC intervalų, etapų ir XAI santraukų išdėstymas yra šio projekto adaptacija, ne šių straipsnių eksperimentų reprodukcija. Skaitinės lentelės pateiktos šalia grafikų.</p></details>
+<details class="analysis-detail" open><summary>Interpretavimo ribos ir Word plano atitiktis</summary><p class="diagnostic-warning">Skaičiavimus užbaigiau. Paaiškinimų stabilumo nepatvirtinau, todėl žemėlapius pateikiu tik patikrai.</p><div id="limitations-results"></div></details>
 </div></div></details>
 </template></section>
 <section id="post-hoc" aria-label="Post hoc XAI diagnostika"><template shadowrootmode="open"><style>
@@ -310,6 +312,8 @@ input[type=checkbox]{width:20px;height:20px;flex-shrink:0}.comparison-legend lab
 .analysis-selector,.calibration-layout,.result-figure,.data-scroll {min-width:0}
 .data-scroll table {font-size:.875rem}
 .data-scroll th,.data-scroll td {padding:.45rem .6rem;font-size:inherit}
+#limitations-results table {min-width:0}
+#limitations-results th,#limitations-results td {text-align:left;white-space:normal;vertical-align:top;overflow-wrap:anywhere}
 button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible {
   outline:3px solid var(--focus);outline-offset:2px;
 }
