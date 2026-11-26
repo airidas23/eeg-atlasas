@@ -1,5 +1,9 @@
 # EEG atlasas · III semestro tyrimas
 
+[Atverti interaktyvų EEG atlasą](https://airidas23.github.io/eeg-atlasas/)
+
+![EEG atlaso ekrano nuotrauka su 3D elektrodų tinklu ir abiejų grupių junglumo matricomis](atlas-screenshot.png)
+
 ## Mokslinis dizainas
 
 - **Klausimas.** Kiek 128 kanalų EEG funkcinio junglumo rodikliai padeda atskirti MODMA depresijos grupę (MDD) nuo sveikų kontrolinių dalyvių (HC)?
